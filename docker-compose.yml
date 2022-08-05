@@ -1,0 +1,29 @@
+version: '2'
+
+services:
+  primary:
+    image: postgres:14
+    ports:
+      - '5432'
+    volumes:
+      - postgresql_primary_data:/var/lib/postgresql
+      - ./init/primary:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=password
+    command: postgres -c logging_collector=on -c log_destination=stderr -c log_directory=/var/log/postgresql -c wal_level=logical
+     
+  secondary:
+    image: postgres:14
+    ports:
+      - '5432'
+    depends_on:
+      - primary
+    volumes:
+      - ./init/secondary:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=password
+    command: postgres -c logging_collector=on -c log_destination=stderr -c log_directory=/var/log/postgresql -c wal_level=logical
+
+volumes:
+  postgresql_primary_data:
+    driver: local
